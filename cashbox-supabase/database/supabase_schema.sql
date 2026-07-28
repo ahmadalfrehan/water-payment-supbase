@@ -15,10 +15,13 @@ create table if not exists profiles (
 );
 
 -- 2. Transactions table
+--    Edit the currency check constraint below to match the codes in
+--    frontend/js/currencies.js if you want different currencies.
 create table if not exists transactions (
   id bigint generated always as identity primary key,
   type text not null check (type in ('deposit', 'withdraw')),
   amount numeric(12,2) not null check (amount > 0),
+  currency text not null default 'USD' check (currency in ('USD', 'SYP')),
   donor_name text,
   withdrawal_reason text,
   notes text,
@@ -60,11 +63,12 @@ begin
   if new.type = 'withdraw' then
     select coalesce(sum(case when type = 'deposit' then amount else -amount end), 0)
     into current_balance
-    from transactions;
+    from transactions
+    where currency = new.currency;
 
     if new.amount > current_balance then
-      raise exception 'Insufficient balance. Current balance is %, cannot withdraw %.',
-        current_balance, new.amount;
+      raise exception 'Insufficient % balance. Current balance is %, cannot withdraw %.',
+        new.currency, current_balance, new.amount;
     end if;
   end if;
   return new;

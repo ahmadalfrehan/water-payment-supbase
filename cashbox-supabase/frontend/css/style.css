@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;600;700&display=swap');
+
 :root {
   --bg: #0f172a;
   --panel: #1e293b;
@@ -15,10 +17,15 @@
 
 body {
   margin: 0;
-  font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  font-family: -apple-system, "Segoe UI", Roboto, "Tahoma", "Noto Sans Arabic", Arial, sans-serif;
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
+}
+
+/* RTL support: flip logical spacing automatically based on the <html dir> attribute */
+[dir="rtl"] body {
+  font-family: "Noto Sans Arabic", "Segoe UI", Tahoma, Arial, sans-serif;
 }
 
 a { color: var(--accent); text-decoration: none; }
@@ -40,7 +47,7 @@ a { color: var(--accent); text-decoration: none; }
 
 .topbar nav a {
   color: var(--text-dim);
-  margin-right: 18px;
+  margin-inline-end: 18px;
   font-size: 0.95rem;
 }
 
@@ -114,7 +121,7 @@ a { color: var(--accent); text-decoration: none; }
 .panel h2 { margin-top: 0; font-size: 1.1rem; }
 
 table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--border); }
+th, td { text-align: start; padding: 10px 8px; border-bottom: 1px solid var(--border); }
 th { color: var(--text-dim); font-weight: 600; font-size: 0.8rem; text-transform: uppercase; }
 tr:hover td { background: rgba(255,255,255,0.02); }
 

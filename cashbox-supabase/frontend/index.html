@@ -5,46 +5,36 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cash Box · Dashboard</title>
 <link rel="stylesheet" href="css/style.css">
+<script>
+  var _lang = localStorage.getItem("cb_lang") || "en";
+  document.documentElement.lang = _lang;
+  document.documentElement.dir = _lang === "ar" ? "rtl" : "ltr";
+</script>
 </head>
 <body>
 
 <div class="topbar" id="topbar"></div>
 
 <div class="container">
-  <div class="cards">
-    <div class="card balance">
-      <div class="label">Current Balance</div>
-      <div class="value" id="balanceVal">—</div>
-    </div>
-    <div class="card deposits">
-      <div class="label">Total Deposits</div>
-      <div class="value" id="depositsVal">—</div>
-    </div>
-    <div class="card withdrawals">
-      <div class="label">Total Withdrawals</div>
-      <div class="value" id="withdrawalsVal">—</div>
-    </div>
-    <div class="card">
-      <div class="label">Transactions</div>
-      <div class="value" id="countVal">—</div>
-    </div>
+  <div class="cards" id="currencyCards">
+    <div class="card"><div class="label" data-i18n="loading">Loading…</div></div>
   </div>
 
   <div class="panel" id="adminActions" style="display:none;">
-    <h2>Quick Actions</h2>
+    <h2 data-i18n="quick_actions">Quick Actions</h2>
     <div class="form-actions">
-      <button class="btn btn-primary" id="openDepositBtn">＋ Add Money</button>
-      <button class="btn btn-danger" id="openWithdrawBtn">－ Withdraw Money</button>
+      <button class="btn btn-primary" id="openDepositBtn" data-i18n="btn_add_money">＋ Add Money</button>
+      <button class="btn btn-danger" id="openWithdrawBtn" data-i18n="btn_withdraw_money">－ Withdraw Money</button>
     </div>
   </div>
 
   <div class="panel">
-    <h2>Latest Transactions</h2>
+    <h2 data-i18n="latest_transactions">Latest Transactions</h2>
     <div id="latestTableWrap">
-      <p class="empty-state">Loading…</p>
+      <p class="empty-state" data-i18n="loading">Loading…</p>
     </div>
     <div style="margin-top:14px;">
-      <a href="transactions.html">View all transactions →</a>
+      <a href="transactions.html" data-i18n="view_all">View all transactions →</a>
     </div>
   </div>
 </div>
@@ -52,27 +42,31 @@
 <!-- Deposit modal -->
 <div class="modal-backdrop" id="depositModal">
   <div class="modal">
-    <h3>Add Money</h3>
+    <h3 data-i18n="modal_add_money_title">Add Money</h3>
     <form id="depositForm">
       <div class="form-row">
-        <label>Amount</label>
+        <label data-i18n="label_amount">Amount</label>
         <input type="number" step="0.01" min="0.01" id="depAmount" required>
       </div>
       <div class="form-row">
-        <label>Donor Name</label>
+        <label data-i18n="label_currency">Currency</label>
+        <select id="depCurrency"></select>
+      </div>
+      <div class="form-row">
+        <label data-i18n="label_donor_name">Donor Name</label>
         <input type="text" id="depDonor" required>
       </div>
       <div class="form-row">
-        <label>Date</label>
+        <label data-i18n="label_date">Date</label>
         <input type="date" id="depDate">
       </div>
       <div class="form-row">
-        <label>Notes</label>
+        <label data-i18n="label_notes">Notes</label>
         <textarea id="depNotes" rows="2"></textarea>
       </div>
       <div class="form-actions">
-        <button type="submit" class="btn btn-primary">Save Deposit</button>
-        <button type="button" class="btn" id="closeDepositBtn">Cancel</button>
+        <button type="submit" class="btn btn-primary" data-i18n="btn_save_deposit">Save Deposit</button>
+        <button type="button" class="btn" id="closeDepositBtn" data-i18n="btn_cancel">Cancel</button>
       </div>
     </form>
   </div>
@@ -81,27 +75,31 @@
 <!-- Withdraw modal -->
 <div class="modal-backdrop" id="withdrawModal">
   <div class="modal">
-    <h3>Withdraw Money</h3>
+    <h3 data-i18n="modal_withdraw_title">Withdraw Money</h3>
     <form id="withdrawForm">
       <div class="form-row">
-        <label>Amount</label>
+        <label data-i18n="label_amount">Amount</label>
         <input type="number" step="0.01" min="0.01" id="wdAmount" required>
       </div>
       <div class="form-row">
-        <label>Reason</label>
+        <label data-i18n="label_currency">Currency</label>
+        <select id="wdCurrency"></select>
+      </div>
+      <div class="form-row">
+        <label data-i18n="label_reason">Reason</label>
         <input type="text" id="wdReason" required>
       </div>
       <div class="form-row">
-        <label>Date</label>
+        <label data-i18n="label_date">Date</label>
         <input type="date" id="wdDate">
       </div>
       <div class="form-row">
-        <label>Notes</label>
+        <label data-i18n="label_notes">Notes</label>
         <textarea id="wdNotes" rows="2"></textarea>
       </div>
       <div class="form-actions">
-        <button type="submit" class="btn btn-primary">Save Withdrawal</button>
-        <button type="button" class="btn" id="closeWithdrawBtn">Cancel</button>
+        <button type="submit" class="btn btn-primary" data-i18n="btn_save_withdrawal">Save Withdrawal</button>
+        <button type="button" class="btn" id="closeWithdrawBtn" data-i18n="btn_cancel">Cancel</button>
       </div>
     </form>
   </div>
@@ -111,6 +109,8 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/supabaseClient.js"></script>
+<script src="js/i18n.js"></script>
+<script src="js/currencies.js"></script>
 <script src="js/api.js"></script>
 <script src="js/dashboard.js"></script>
 </body>

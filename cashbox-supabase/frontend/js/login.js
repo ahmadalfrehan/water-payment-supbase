@@ -1,4 +1,7 @@
+I18N.applyStaticTranslations();
 Auth.redirectIfLoggedIn();
+
+document.getElementById("langToggleBtn").addEventListener("click", () => I18N.toggle());
 
 const form = document.getElementById("loginForm");
 const errorMsg = document.getElementById("errorMsg");
@@ -12,16 +15,16 @@ form.addEventListener("submit", async (e) => {
   const password = document.getElementById("password").value;
 
   loginBtn.disabled = true;
-  loginBtn.textContent = "Signing in...";
+  loginBtn.textContent = I18N.t("btn_login_loading");
 
   try {
     await Api.login(email, password);
     window.location.href = "index.html";
   } catch (err) {
-    errorMsg.textContent = err.message || "Login failed. Check your credentials.";
+    errorMsg.textContent = err.message || I18N.t("err_login_default");
     errorMsg.className = "error-msg show";
   } finally {
     loginBtn.disabled = false;
-    loginBtn.textContent = "Log in";
+    loginBtn.textContent = I18N.t("btn_login");
   }
 });

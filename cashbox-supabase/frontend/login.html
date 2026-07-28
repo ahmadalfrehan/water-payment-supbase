@@ -5,32 +5,43 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cash Box · Login</title>
 <link rel="stylesheet" href="css/style.css">
+<script>
+  // Set direction immediately (before paint) to avoid a flash of the wrong layout
+  var _lang = localStorage.getItem("cb_lang") || "en";
+  document.documentElement.lang = _lang;
+  document.documentElement.dir = _lang === "ar" ? "rtl" : "ltr";
+</script>
 </head>
 <body>
 
 <div class="login-wrap">
   <div class="login-card">
-    <h1>💰 Cash Box</h1>
-    <p class="sub">Sign in to continue</p>
+    <div style="text-align:center; margin-bottom:14px;">
+      <button class="btn btn-sm" id="langToggleBtn" data-i18n="lang_toggle">العربية</button>
+    </div>
+    <h1 data-i18n="brand">💰 Cash Box</h1>
+    <p class="sub" data-i18n="login_subtitle">Sign in to continue</p>
 
     <div class="error-msg" id="errorMsg"></div>
 
     <form id="loginForm">
       <div class="form-row">
-        <label for="email">Email</label>
+        <label for="email" data-i18n="label_email">Email</label>
         <input type="email" id="email" required autocomplete="username">
       </div>
       <div class="form-row">
-        <label for="password">Password</label>
+        <label for="password" data-i18n="label_password">Password</label>
         <input type="password" id="password" required autocomplete="current-password">
       </div>
-      <button type="submit" class="btn btn-primary" id="loginBtn">Log in</button>
+      <button type="submit" class="btn btn-primary" id="loginBtn" data-i18n="btn_login">Log in</button>
     </form>
   </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/supabaseClient.js"></script>
+<script src="js/i18n.js"></script>
+<script src="js/currencies.js"></script>
 <script src="js/api.js"></script>
 <script src="js/login.js"></script>
 </body>

@@ -19,12 +19,16 @@ static files.
    This creates the `profiles` and `transactions` tables, the balance-check rule,
    and the access-control policies.
 
+   **Already have this project set up from before (no `currency` column yet)?**
+   Just run `database/migration_add_currency.sql` instead — it adds currency
+   support without touching your existing data.
+
 ## 2. Connect the frontend to your project
 
 1. In Supabase: **Project Settings → API**. Copy the **Project URL** and the
    **anon public** key.
 2. Open `frontend/js/supabaseClient.js` and paste them in:
-   ```js4
+   ```js
    const SUPABASE_URL = "https://xxxxxxxx.supabase.co";
    const SUPABASE_ANON_KEY = "eyJ...your-anon-key...";
    ```
@@ -66,6 +70,40 @@ Open `http://localhost:8080/login.html` and sign in with an account you invited.
 
 That's it — no backend to deploy, no server to keep awake, no database to
 provision separately. The whole app is static files + Supabase.
+
+## Arabic / English
+
+There's a language toggle button in the top bar (and on the login page) that
+switches all UI text between English and Arabic and flips the layout to
+right-to-left. The choice is remembered per-browser.
+
+To add more UI text later, add a key to both the `en` and `ar` objects in
+`frontend/js/i18n.js`, then reference it with `I18N.t("your_key")` in JS or
+`data-i18n="your_key"` on a static HTML element.
+
+## Multiple currencies
+
+The app tracks balances in more than one currency — each deposit/withdrawal
+picks a currency, and the dashboard shows a separate balance/deposits/
+withdrawals card group per currency actually in use. Currencies are never
+summed together, and the "can't withdraw more than the balance" rule checks
+the balance *within that currency only* (withdrawing USD isn't limited by
+your EGP balance).
+
+To change which currencies are offered:
+1. Edit the list in `frontend/js/currencies.js`.
+2. Update the matching `check (currency in (...))` constraint in
+   `database/supabase_schema.sql` (new projects) — or, for a project that's
+   already running, run `database/migration_add_currency.sql` with your codes
+   swapped in.
+
+## Editing and deleting transactions
+
+Admins can edit or delete any transaction from the Transactions page. Edit
+opens a form pre-filled with that transaction's current amount, currency,
+date, donor/reason, and notes — change what you need and save. Both actions
+are enforced server-side by the same Row Level Security policies that block
+deposits/withdrawals for viewers, so they can't be bypassed from the browser.
 
 ## What's enforced where
 

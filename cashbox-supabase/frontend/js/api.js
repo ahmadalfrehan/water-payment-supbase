@@ -1,4 +1,4 @@
-// Requires supabaseClient.js loaded first (defines `supabaseClient`)
+// Requires supabaseClient.js, i18n.js, and currencies.js loaded first
 
 const Auth = {
   user: null,
@@ -50,6 +50,7 @@ function mapTransaction(t) {
     id: t.id,
     type: t.type,
     amount: Number(t.amount),
+    currency: t.currency,
     donor_name: t.donor_name,
     withdrawal_reason: t.withdrawal_reason,
     notes: t.notes,
@@ -80,11 +81,27 @@ const Api = {
   },
 
   async getDashboard() {
-    const { data: all, error: e1 } = await supabaseClient.from("transactions").select("type, amount");
+    const { data: all, error: e1 } = await supabaseClient.from("transactions").select("type, amount, currency");
     if (e1) throw new Error(e1.message);
 
-    const totalDeposits = all.filter((t) => t.type === "deposit").reduce((s, t) => s + Number(t.amount), 0);
-    const totalWithdrawals = all.filter((t) => t.type === "withdraw").reduce((s, t) => s + Number(t.amount), 0);
+    // Group totals per currency — balances from different currencies are never summed together
+    const byCurrency = {};
+    for (const c of CURRENCIES) {
+      byCurrency[c.code] = { currency: c.code, total_deposits: 0, total_withdrawals: 0, balance: 0 };
+    }
+    for (const t of all) {
+      if (!byCurrency[t.currency]) {
+        byCurrency[t.currency] = { currency: t.currency, total_deposits: 0, total_withdrawals: 0, balance: 0 };
+      }
+      const amt = Number(t.amount);
+      if (t.type === "deposit") byCurrency[t.currency].total_deposits += amt;
+      else byCurrency[t.currency].total_withdrawals += amt;
+    }
+    Object.values(byCurrency).forEach((c) => {
+      c.total_deposits = round2(c.total_deposits);
+      c.total_withdrawals = round2(c.total_withdrawals);
+      c.balance = round2(c.total_deposits - c.total_withdrawals);
+    });
 
     const { data: latest, error: e2 } = await supabaseClient
       .from("transactions")
@@ -95,9 +112,7 @@ const Api = {
     if (e2) throw new Error(e2.message);
 
     return {
-      balance: round2(totalDeposits - totalWithdrawals),
-      total_deposits: round2(totalDeposits),
-      total_withdrawals: round2(totalWithdrawals),
+      by_currency: Object.values(byCurrency),
       transaction_count: all.length,
       latest_transactions: latest.map(mapTransaction),
     };
@@ -124,12 +139,13 @@ const Api = {
     return { total: count, page, page_size: pageSize, items: data.map(mapTransaction) };
   },
 
-  async deposit({ amount, donor_name, notes, date }) {
+  async deposit({ amount, currency, donor_name, notes, date }) {
     const { data, error } = await supabaseClient
       .from("transactions")
       .insert({
         type: "deposit",
         amount,
+        currency,
         donor_name,
         notes: notes || null,
         date: date || undefined,
@@ -141,12 +157,13 @@ const Api = {
     return mapTransaction(data);
   },
 
-  async withdraw({ amount, reason, notes, date }) {
+  async withdraw({ amount, currency, reason, notes, date }) {
     const { data, error } = await supabaseClient
       .from("transactions")
       .insert({
         type: "withdraw",
         amount,
+        currency,
         withdrawal_reason: reason,
         notes: notes || null,
         date: date || undefined,
@@ -187,11 +204,12 @@ const Api = {
     const { data, error } = await query;
     if (error) throw new Error(error.message);
 
-    const header = ["ID", "Type", "Amount", "Donor/Reason", "Notes", "Date", "User", "Created At"];
+    const header = ["ID", "Type", "Amount", "Currency", "Donor/Reason", "Notes", "Date", "User", "Created At"];
     const rows = data.map((t) => [
       t.id,
       t.type,
       t.amount,
+      t.currency,
       t.donor_name || t.withdrawal_reason || "",
       t.notes || "",
       t.date,
@@ -213,24 +231,29 @@ function showToast(message, type = "success") {
   }, 3500);
 }
 
-function formatMoney(n) {
-  return Number(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+// Always uses Western digits/formatting regardless of UI language, for consistent
+// financial readability. Prefixes the currency symbol.
+function formatMoney(n, currencyCode) {
+  const num = Number(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return currencyCode ? `${currencySymbol(currencyCode)} ${num}` : num;
 }
 
 function renderTopbar(activePage) {
   const el = document.getElementById("topbar");
   if (!el) return;
   el.innerHTML = `
-    <div class="brand">💰 Cash Box</div>
+    <div class="brand">${I18N.t("brand")}</div>
     <nav>
-      <a href="index.html" class="${activePage === "dashboard" ? "active" : ""}">Dashboard</a>
-      <a href="transactions.html" class="${activePage === "transactions" ? "active" : ""}">Transactions</a>
+      <a href="index.html" class="${activePage === "dashboard" ? "active" : ""}">${I18N.t("nav_dashboard")}</a>
+      <a href="transactions.html" class="${activePage === "transactions" ? "active" : ""}">${I18N.t("nav_transactions")}</a>
     </nav>
     <div class="user-info">
+      <button class="btn btn-sm" id="langToggleBtn">${I18N.t("lang_toggle")}</button>
       <span>${Auth.username}</span>
-      <span class="role-badge ${Auth.role}">${Auth.role}</span>
-      <button class="btn btn-sm" id="logoutBtn">Log out</button>
+      <span class="role-badge ${Auth.role}">${I18N.t(Auth.role === "admin" ? "role_admin" : "role_viewer")}</span>
+      <button class="btn btn-sm" id="logoutBtn">${I18N.t("logout")}</button>
     </div>
   `;
   document.getElementById("logoutBtn").addEventListener("click", () => Auth.logout());
+  document.getElementById("langToggleBtn").addEventListener("click", () => I18N.toggle());
 }
